@@ -1,0 +1,54 @@
+{
+  "escopo": "Testes locais de JavaScript e estrutura JSON, sem n8n ou sistemas reais",
+  "total": 12,
+  "testes": [
+    {
+      "teste": "Sintaxe dos corpos JavaScript",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Estrutura pública e conexões válidas",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Cursores de paginação iniciam e avançam",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Agrega duas páginas de histórico simuladas",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Separa results em itens individuais",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Datas delimitam o mês do relógio simulado",
+      "resultado": "passou"
+    },
+    {
+      "teste": "PAGAMENTO ACUMULADO: soma arrays e objeto único",
+      "resultado": "passou"
+    },
+    {
+      "teste": "PAGAMENTO ACUMULADO: entrada vazia retorna zero e referência nula",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Pagamento: soma arrays e objeto único",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Pagamento: entrada vazia retorna zero e referência nula",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Cruzar Natureza com Pagamento: relaciona nota, produto e natureza",
+      "resultado": "passou"
+    },
+    {
+      "teste": "Cruzar Natureza com Pagamento1: relaciona nota, produto e natureza",
+      "resultado": "passou"
+    }
+  ]
+}

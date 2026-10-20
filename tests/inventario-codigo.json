@@ -1,0 +1,55 @@
+{
+  "repo": "n8n-sankhya-hubspot-financial-sync",
+  "title": "Visão financeira para CS — ERP Sankhya → HubSpot",
+  "image": "sincronizacao-financeira-sankhya-hubspot.png",
+  "variant": "financeiro",
+  "total": 39,
+  "disabled": 12,
+  "codes": [
+    {
+      "name": "paginacao3",
+      "path": "code/01-paginacao3.js",
+      "legacy": true
+    },
+    {
+      "name": "prox_pag3",
+      "path": "code/02-prox-pag3.js",
+      "legacy": true
+    },
+    {
+      "name": "all",
+      "path": "code/03-all.js",
+      "legacy": true
+    },
+    {
+      "name": "Code1",
+      "path": "code/04-code1.js",
+      "legacy": false
+    },
+    {
+      "name": "Datas",
+      "path": "code/05-datas.js",
+      "legacy": false
+    },
+    {
+      "name": "PAGAMENTO ACUMULADO",
+      "path": "code/06-pagamento-acumulado.js",
+      "legacy": false
+    },
+    {
+      "name": "Cruzar Natureza com Pagamento",
+      "path": "code/07-cruzar-natureza-com-pagamento.js",
+      "legacy": false
+    },
+    {
+      "name": "Cruzar Natureza com Pagamento1",
+      "path": "code/08-cruzar-natureza-com-pagamento1.js",
+      "legacy": false
+    },
+    {
+      "name": "Pagamento",
+      "path": "code/09-pagamento.js",
+      "legacy": false
+    }
+  ]
+}

@@ -1,0 +1,1241 @@
+{
+  "name": "Visão financeira para CS — ERP Sankhya → HubSpot — template público",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sankhya.com.br/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            },
+            {
+              "name": "appkey",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            },
+            {
+              "name": "username",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            },
+            {
+              "name": "password",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "54921dc6-9ec0-4362-bdb9-c87d38234c45",
+      "name": "Gera Key",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2864,
+        -544
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "entities",
+              "value": "={{ $('Consultar títulos pagos').item.json.responseBody.entities.entity }}"
+            },
+            {
+              "name": "natureza",
+              "value": "={{ $('Natureza1').item.json.responseBody.entities.entity }}"
+            },
+            {
+              "name": "item_nota",
+              "value": "={{ $json.responseBody.entities.entity }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d0ed9bff-db53-48af-9c90-bfadc70e9292",
+      "name": "Obter Entities",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -2048,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n    \"requestBody\": {\n        \"dataSet\": {\n            \"rootEntity\": \"Financeiro\",\n            \"includePresentationFields\": \"N\",\n            \"tryJoinedFields\":\"true\",\n            \"offsetPage\": \"0\",\n            \"criteria\": {\n                  \"expression\": {\n                      \"$\": \"EXISTS (SELECT * FROM TGFPAR WHERE TGFPAR.CODPARC = TGFFIN.CODPARC AND TGFPAR.CODPARCMATRIZ = {{ $('Dados da Conta').item.json.id_do_parceiro_sankhya }}) AND this.RECDESP = 1 AND this.PROVISAO = 'N' AND this.DHBAIXA IS NOT NULL and onlyDate(this.DHBAIXA) >= {{ $('Datas').item.json.first_day_of_month }} AND  onlyDate(this.DHBAIXA) <= {{ $('Datas').item.json.last_day_of_month }}\"\n                  }\n              },\n            \"entity\": [\n                {\n                    \"path\":\"\", \n                    \"fieldset\": {\n                        \"list\": \"NUFIN,VLRBAIXA,DHBAIXA,DTVENC,CODPARC,CODNAT\"\n                    }\n                },\n                { \n                    \"path\":\"CabecalhoNota\", \n                    \"fieldset\": {\n                        \"list\":\"NUNOTA,NUMNOTA\"\n                    }\n                }\n            ]\n        }\n    }\n}",
+        "options": {}
+      },
+      "id": "f198c3a2-f652-4f9f-9cb6-10542705c7ff",
+      "name": "Consultar títulos pagos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2416,
+        672
+      ],
+      "continueOnFail": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$node[\"Consulta HubSpot\"].json[\"paging\"][\"next\"][\"after\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "IF6",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2256,
+        -544
+      ],
+      "id": "62ab3727-f778-452a-bc6e-a7eeafd3c213"
+    },
+    {
+      "parameters": {
+        "functionCode": "var run_index = $thisRunIndex;\nvar after = items[0].json.after;\n\nif (run_index == 0){\n  return{\n    after: 0,\n    run_index: run_index\n  }\n}\n\nelse{\n  return{\n    after: after,\n    run_index: run_index\n  }\n}"
+      },
+      "name": "paginacao3",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -3008,
+        -16
+      ],
+      "id": "134baf00-3194-402a-84b1-e7242bbce77c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$node[\"Paginação HubSpot\"].json[\"paging\"][\"next\"][\"after\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "IF7",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2608,
+        -16
+      ],
+      "id": "8652fd20-9766-47ae-9ba6-d1bc04bd45dc"
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "bbc547f3-c83c-42f7-91fb-749cf41972c1",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -2416,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "var after = $item(\"0\").$node[\"Paginação HubSpot\"].json[\"paging\"][\"next\"][\"after\"];\n\nreturn{\n  after\n}"
+      },
+      "name": "prox_pag3",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -2240,
+        -240
+      ],
+      "id": "72232fa9-e736-438f-892b-c455126fa059"
+    },
+    {
+      "parameters": {
+        "functionCode": "const allData = []\nlet counter = 0;\n\ndo {\n  try {\n    // Verifique os dados retornados para cada iteração\n    const items = $items(\"Paginação HubSpot\", 0, counter).map(item => item.json.results);\n\n    allData.push.apply(allData, items[0]);\n  } catch (error) {\n\n    return allData;\n  }\n\n  counter++;\n} while(true);\n\n"
+      },
+      "name": "all",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        -2416,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "d7fcee8b-f4b5-4a24-8a61-f65757c328d8"
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "00 01 * * *"
+            }
+          ]
+        }
+      },
+      "id": "1c3f20c5-1dbe-4ca6-8d56-f4933d607581",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        -3040,
+        -544
+      ],
+      "typeVersion": 1,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "bf6e56c2-c553-440f-865c-761f00981c20",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [
+        -2848,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); // Obtém todos os itens de entrada\nlet output = []; // Array para armazenar os itens divididos\n\n// Itera sobre os itens do JSON de entrada\nitems.forEach(item => {\n  // Itera sobre os resultados do JSON\n  item.json.results.forEach(result => {\n    // Adiciona cada registro como um item separado no array de saída\n    output.push({\n      json: result\n    });\n  });\n});\n\n// Retorna os itens individualmente\nreturn output;\n"
+      },
+      "id": "7e8c2061-8b59-43c3-832a-3acb121d7aa7",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -3024,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.responseBody.entities.total}}",
+              "operation": "notEqual",
+              "value2": "0"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "b3eb7da0-cb74-4033-80c4-ecca0f7adbd2",
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/CONFIGURE_ID_031/{{ $('Dados da Conta').item.json.RecordID }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"properties\": {\n        \"status_inadimplencia\":\"Adimplente\",\n        \"valor_do_pagamento_no_ultimo_faturamento\":\"{{ $('Pagamento').item.json.ValorPago }}\",\n        \"data_do_ultimo_pagamento_realizado\":\"{{ $('Pagamento').item.json.UltimoPagamento }}\",\n        \"data_do_ultimo_vencimento_pago\":\"{{ $('Pagamento').item.json.UltimoVencimento }}\",\n        \"id_do_invoice\":\"{{ $('Pagamento').item.json.NRUNICO }}\",\n        \"observacao_fat_sankhya\":\"{{ $json.observacoes }}\"\n    }\n} ",
+        "options": {}
+      },
+      "id": "f15ac384-83a5-436c-93bf-81dd2138aaa2",
+      "name": "Atualizar Conta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1280,
+        432
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "id_do_parceiro_sankhya",
+              "value": "={{ $json.properties.id_do_parceiro_sankhya }}"
+            },
+            {
+              "name": "RecordID",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "feb0a3ab-89e8-4874-8a39-d67f1766a84a",
+      "name": "Dados da Conta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -2624,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "entities",
+              "value": "={{ $('Valores Pagos').item.json.responseBody.entities.entity }}"
+            },
+            {
+              "name": "natureza",
+              "value": "={{ $('Natureza').item.json.responseBody.entities.entity }}"
+            },
+            {
+              "name": "item_nota",
+              "value": "={{ $json.responseBody.entities.entity }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9f5a7f27-c18f-442b-9d87-6b5e4487729d",
+      "name": "Obter Entities1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "bb09ca97-fe80-4182-b5f4-1164208a7a27",
+      "name": "Split In Batches1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Valores Pagos').item.json.responseBody.entities.entity }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "c2a48169-2598-496c-8af1-d382d8345d44",
+      "name": "IF1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/CONFIGURE_ID_031/{{ $('Dados da Conta1').item.json.RecordID }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "CONFIGURE_SECRET_PRIVATELY"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"properties\": {\n        \"status_inadimplencia\":\"Adimplente\",\n        \"valor_do_pagamento_no_ultimo_faturamento\":\"{{ $('PAGAMENTO ACUMULADO').item.json.ValorPago }}\",\n        \"data_do_ultimo_pagamento_realizado\":\"{{ $('PAGAMENTO ACUMULADO').item.json.UltimoPagamento }}\",\n        \"data_do_ultimo_vencimento_pago\":\"{{ $('PAGAMENTO ACUMULADO').item.json.UltimoVencimento }}\",\n        \"id_do_invoice\":\"{{ $('PAGAMENTO ACUMULADO').item.json.NRUNICO }}\",\n        \"observacao_fat_sankhya\":\"{{ $('Cruzar Natureza com Pagamento').item.json.observacoes }}\"\n    }\n} ",
+        "options": {}
+      },
+      "id": "ff068d19-0180-48e4-aa82-dccac4ddbfd9",
+      "name": "Atualizar Conta1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -784,
+        -224
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "id_do_parceiro_sankhya",
+              "value": "={{ $json.properties.id_do_parceiro_sankhya }}"
+            },
+            {
+              "name": "RecordID",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59d7b6d5-d20c-4d4d-873f-317578fccaae",
+      "name": "Dados da Conta1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Visão financeira para CS — ERP Sankhya → HubSpot\nBloco 1. Template público inativo, sem credenciais. Configure somente em ambiente de teste.",
+        "height": 394,
+        "width": 1036,
+        "color": 4
+      },
+      "id": "2ac01912-0463-4825-9304-0dff7e242d59",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3104,
+        -704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date(); // Data atual\n\n// Primeiro dia do mês corrente\nconst firstDay = new Date(now.getFullYear(), now.getMonth(), 1);\nconst firstDayFormatted = firstDay.toLocaleDateString('pt-BR');\n\n// Último dia do mês corrente\nconst lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);\nconst lastDayFormatted = lastDay.toLocaleDateString('pt-BR');\n\n// Retornar os resultados no formato esperado pelo n8n\nreturn [\n    {\n        json: {\n            first_day_of_month: firstDayFormatted,\n            last_day_of_month: lastDayFormatted,\n        },\n    },\n];\n"
+      },
+      "id": "b723e211-30dc-49d2-9099-89ab4c57c8f6",
+      "name": "Datas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -2688,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "amount": "=12",
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -944,
+        -224
+      ],
+      "id": "f5ea3337-cbe1-46c5-afe0-0146bdb65735",
+      "name": "Wait1"
+    },
+    {
+      "parameters": {
+        "amount": 12,
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1456,
+        432
+      ],
+      "id": "af590e4d-627c-4f96-ba48-35d04fd73b8f",
+      "name": "Wait2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); // Obtém todos os itens de entrada\nlet totalSum = 0; // Variável para armazenar a soma total\nlet lastPaymentDate = ''; // Variável para armazenar a última data de pagamento\nlet lastDueDate = '';\nlet lastNRUNICO = null; // Variável para armazenar a última data de vencimento\n\nitems.forEach(item => {\n  // Garante que entities seja tratado como array, mesmo se houver apenas um pagamento\n  const entities = Array.isArray(item.json.entities) ? item.json.entities : item.json.entities ? [item.json.entities] : [];\n\n  entities.forEach(entity => {\n    // Obtém valores de F0, F1, F2 e F3\n    const NRUNICO = parseFloat(entity.f0?.$) || 0; // NRO Unico\n    const valorPago = parseFloat(entity.f1?.$) || 0; // Converte F1 para número (valor pago)\n    const dataPagamento = entity.f2?.$ || ''; // Data de Pagamento (F2)\n    const dataVencimento = entity.f3?.$ || ''; // Data de Vencimento (F3)\n\n    // Soma o valor pago\n    totalSum += valorPago;\n\n    // Atualiza a última Data de Pagamento (F2)\n    if (dataPagamento) {\n      lastPaymentDate = dataPagamento;\n    }\n\n    // Atualiza a última NR_Unica (F0)\n    if (NRUNICO) {\n      lastNRUNICO = NRUNICO;\n    }\n\n    // Atualiza a última Data de Vencimento (F3)\n    if (dataVencimento) {\n      lastDueDate = dataVencimento;\n    }\n  });\n});\n\n// Arredonda a soma para 2 casas decimais\ntotalSum = parseFloat(totalSum.toFixed(2));\n\n// Retorna o resultado no formato desejado\nreturn [{\n  json: {\n    NRUNICO:lastNRUNICO,\n    ValorPago: totalSum,\n    UltimoPagamento: lastPaymentDate,\n    UltimoVencimento: lastDueDate\n  }\n}];"
+      },
+      "id": "5fb2d22d-db89-4984-aa15-3e85f1a85a2b",
+      "name": "PAGAMENTO ACUMULADO",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n    \"requestBody\": {\n        \"dataSet\": {\n            \"rootEntity\": \"Financeiro\",\n            \"includePresentationFields\": \"N\",\n            \"tryJoinedFields\":\"true\",\n            \"offsetPage\": \"0\",\n            \"criteria\": {\n                  \"expression\": {\n                      \"$\": \"EXISTS (SELECT * FROM TGFPAR WHERE TGFPAR.CODPARC = TGFFIN.CODPARC AND TGFPAR.CODPARCMATRIZ = {{ $('Dados da Conta1').item.json.id_do_parceiro_sankhya }}) AND this.RECDESP = 1 AND this.PROVISAO = 'N' AND this.DHBAIXA IS NOT NULL and onlyDate(this.DHBAIXA) >= {{ $('Datas').item.json.first_day_of_month }} AND  onlyDate(this.DHBAIXA) <= {{ $('Datas').item.json.last_day_of_month }}\"\n                  }\n              },\n            \"entity\": [\n                {\n                    \"path\":\"\", \n                    \"fieldset\": {\n                        \"list\": \"NUFIN,VLRBAIXA,DHBAIXA,DTVENC,CODPARC,CODNAT\"\n                    }\n                },\n                { \n                    \"path\":\"CabecalhoNota\", \n                    \"fieldset\": {\n                        \"list\":\"NUNOTA,NUMNOTA\"\n                    }\n                }\n            ]\n        }\n    }\n}",
+        "options": {}
+      },
+      "id": "fa05ac3e-d16b-4a0a-acbc-6ed4f9f3149a",
+      "name": "Valores Pagos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1824,
+        80
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "= {\n  \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n  \"requestBody\": {\n    \"dataSet\": {\n      \"rootEntity\": \"Natureza\",\n      \"includePresentationFields\": \"N\",\n      \"offsetPage\": \"0\",\n      \"criteria\": {\n        \"expression\": {\n          \"$\": \"this.CODNAT IS NOT NULL and DESCRNAT like '%RECEITA%'\"\n        }\n      },\n      \"entity\": {\n        \"fieldset\": {\n              \"list\":\"CODNAT,DESCRNAT\"\n        }\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "8d2aa6a5-6245-4edb-aa9a-65c92b0d6a5d",
+      "name": "Natureza",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1824,
+        -224
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function garantirArray(x) {\n  if (!x) return [];\n  return Array.isArray(x) ? x : [x];\n}\n\nconst data = $('Obter Entities1').first().json;\n\nconst entities = garantirArray(data.entities);\nconst naturezas = garantirArray(data.natureza);\nconst itensNota = garantirArray(data.item_nota);\n\n// Mapeia código da natureza → descrição\nconst naturezaMap = {};\nnaturezas.forEach(nat => {\n  naturezaMap[nat.f0.$] = nat.f1.$;\n});\n\nfunction formatarValor(valor) {\n  const numero = Number(valor);\n  if (isNaN(numero)) return 'valor inválido';\n  return numero.toLocaleString('pt-BR', {\n    style: 'currency',\n    currency: 'BRL'\n  });\n}\n\nfunction formatarProduto(nome) {\n  if (!nome) return '';\n  // Remove \"RECEITA SAAS - \" e deixa apenas primeira letra maiúscula\n  let nomeFormatado = nome.replace(/^RECEITA SAAS - /i, '');\n  return nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1).toLowerCase();\n}\n\nlet linhas = [];\n\nentities.forEach(ent => {\n  const codigoNatureza = ent.f5?.$;\n  const descricaoNatureza = naturezaMap[codigoNatureza] || `<DESCRIÇÃO (${codigoNatureza})>`;\n  const valor = Number(ent.f1?.$) || 0;\n  const numeroNota = ent.f6?.$ || '';\n\n  // Pega produtos dessa nota, com valores\n  const produtos = itensNota\n    .filter(it => it.f2?.$ === numeroNota) // f2 = NUNOTA\n    .map(it => {\n      const nome = formatarProduto(it.f4?.$); // descrição\n      const valorItem = formatarValor(it.f1?.$); // valor total\n      return `${nome}: ${valorItem}`;\n    });\n\n  // Remove duplicados exatos\n  const produtosUnicos = [...new Set(produtos)];\n\n  // Monta a linha resumida\n  let linha = `${descricaoNatureza}: ${formatarValor(valor)}                                          (${produtosUnicos.join(' & ')})`;\n\n  linhas.push(linha);\n});\n\nreturn [\n  {\n    json: {\n      observacoes: linhas.join(\"                                                                            \")\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        -224
+      ],
+      "id": "a2d352c9-2c6a-4b41-b87b-b6c80392f97d",
+      "name": "Cruzar Natureza com Pagamento"
+    },
+    {
+      "parameters": {
+        "jsCode": "function garantirArray(x) {\n  if (!x) return [];\n  return Array.isArray(x) ? x : [x];\n}\n\nconst data = $('Obter Entities').first().json;\n\nconst entities = garantirArray(data.entities);\nconst naturezas = garantirArray(data.natureza);\nconst itensNota = garantirArray(data.item_nota);\n\n// Mapeia código da natureza → descrição\nconst naturezaMap = {};\nnaturezas.forEach(nat => {\n  naturezaMap[nat.f0.$] = nat.f1.$;\n});\n\nfunction formatarValor(valor) {\n  const numero = Number(valor);\n  if (isNaN(numero)) return 'valor inválido';\n  return numero.toLocaleString('pt-BR', {\n    style: 'currency',\n    currency: 'BRL'\n  });\n}\n\nfunction formatarProduto(nome) {\n  if (!nome) return '';\n  // Remove \"RECEITA SAAS - \" e deixa apenas primeira letra maiúscula\n  let nomeFormatado = nome.replace(/^RECEITA SAAS - /i, '');\n  return nomeFormatado.charAt(0).toUpperCase() + nomeFormatado.slice(1).toLowerCase();\n}\n\nlet linhas = [];\n\nentities.forEach(ent => {\n  const codigoNatureza = ent.f5?.$;\n  const descricaoNatureza = naturezaMap[codigoNatureza] || `<DESCRIÇÃO (${codigoNatureza})>`;\n  const valor = Number(ent.f1?.$) || 0;\n  const numeroNota = ent.f6?.$ || '';\n\n  // Pega produtos dessa nota, com valores\n  const produtos = itensNota\n    .filter(it => it.f2?.$ === numeroNota) // f2 = NUNOTA\n    .map(it => {\n      const nome = formatarProduto(it.f4?.$); // descrição\n      const valorItem = formatarValor(it.f1?.$); // valor total\n      return `${nome}: ${valorItem}`;\n    });\n\n  // Remove duplicados exatos\n  const produtosUnicos = [...new Set(produtos)];\n\n  // Monta a linha resumida\n  let linha = `${descricaoNatureza}: ${formatarValor(valor)}                                          (${produtosUnicos.join(' & ')})`;\n\n  linhas.push(linha);\n});\n\nreturn [\n  {\n    json: {\n      observacoes: linhas.join(\"                                                                            \")\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1664,
+        432
+      ],
+      "id": "dd08fd8a-0912-43d9-ae51-5c4082a7b4c1",
+      "name": "Cruzar Natureza com Pagamento1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); // Obtém todos os itens de entrada\nlet totalSum = 0; // Variável para armazenar a soma total\nlet lastPaymentDate = ''; // Variável para armazenar a última data de pagamento\nlet lastDueDate = '';\nlet lastNRUNICO = null; // Variável para armazenar a última data de vencimento\n\nitems.forEach(item => {\n  // Garante que entities seja tratado como array, mesmo se houver apenas um pagamento\n  const entities = Array.isArray(item.json.entities) ? item.json.entities : item.json.entities ? [item.json.entities] : [];\n\n  entities.forEach(entity => {\n    // Obtém valores de F0, F1, F2 e F3\n    const NRUNICO = parseFloat(entity.f0?.$) || 0; // NRO Unico\n    const valorPago = parseFloat(entity.f1?.$) || 0; // Converte F1 para número (valor pago)\n    const dataPagamento = entity.f2?.$ || ''; // Data de Pagamento (F2)\n    const dataVencimento = entity.f3?.$ || ''; // Data de Vencimento (F3)\n\n    // Soma o valor pago\n    totalSum += valorPago;\n\n    // Atualiza a última Data de Pagamento (F2)\n    if (dataPagamento) {\n      lastPaymentDate = dataPagamento;\n    }\n\n    // Atualiza a última NR_Unica (F0)\n    if (NRUNICO) {\n      lastNRUNICO = NRUNICO;\n    }\n\n    // Atualiza a última Data de Vencimento (F3)\n    if (dataVencimento) {\n      lastDueDate = dataVencimento;\n    }\n  });\n});\n\n// Arredonda a soma para 2 casas decimais\ntotalSum = parseFloat(totalSum.toFixed(2));\n\n// Retorna o resultado no formato desejado\nreturn [{\n  json: {\n    NRUNICO:lastNRUNICO,\n    ValorPago: totalSum,\n    UltimoPagamento: lastPaymentDate,\n    UltimoVencimento: lastDueDate\n  }\n}];"
+      },
+      "id": "094ae32d-52c6-4aed-885c-ff54589eacc9",
+      "name": "Pagamento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "= {\n  \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n  \"requestBody\": {\n    \"dataSet\": {\n      \"rootEntity\": \"Natureza\",\n      \"includePresentationFields\": \"N\",\n      \"offsetPage\": \"0\",\n      \"criteria\": {\n        \"expression\": {\n          \"$\":  \"this.CODNAT IS NOT NULL and DESCRNAT like '%RECEITA%'\"\n        }\n      },\n      \"entity\": {\n        \"fieldset\": {\n              \"list\":\"CODNAT,DESCRNAT\"\n        }\n      }\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "95da99ad-9361-4f0c-a2ec-50aa591c281d",
+      "name": "Natureza1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2416,
+        432
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/CONFIGURE_ID_031/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filterGroups\": [\n    {\n      \"filters\": [\n        {\n          \"propertyName\": \"hs_pipeline\",\n          \"operator\": \"EQ\",\n          \"value\": \"910012\"\n        },\n        {\n          \"propertyName\": \"hs_pipeline_stage\",\n          \"operator\": \"IN\",\n          \"values\": [\"910013\",\"910014\",\"910015\",\"910016\",\"910017\",\"910018\",\"910019\"]\n        },\n          {\n            \"propertyName\": \"id_do_parceiro_sankhya\",\n            \"operator\": \"HAS_PROPERTY\"\n          }\n      ]\n    }\n  ],\n  \"properties\": [\n    \"hs_object_id\",\n    \"conta_name\",\n    \"valor\",\n    \"id_do_parceiro_sankhya\"\n  ],\n  \"limit\": 200,\n  \"after\": 0\n}",
+        "options": {}
+      },
+      "id": "823a60c7-9b29-4250-8a46-a3a99a2ffc95",
+      "name": "Consulta HubSpot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -2480,
+        -544
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/CONFIGURE_ID_031/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filterGroups\": [\n    {\n      \"filters\": [\n        {\n          \"propertyName\": \"hs_pipeline\",\n          \"operator\": \"EQ\",\n          \"value\": \"910012\"\n        },\n        {\n          \"propertyName\": \"hs_pipeline_stage\",\n          \"operator\": \"IN\",\n          \"values\": [\"910013\",\"910014\",\"910015\",\"910016\",\"910017\",\"910018\",\"910019\"]\n        },\n{\n          \"propertyName\": \"id_do_parceiro_sankhya\",\n          \"operator\": \"HAS_PROPERTY\"\n        }\n      ]\n    }\n  ],\n  \"properties\": [\n    \"hs_object_id\",\n    \"conta_name\",\n    \"valor\",\n    \"id_do_parceiro_sankhya\"\n  ],\n  \"limit\": 200,\n  \"after\": {{$json[\"after\"]}}\n}",
+        "options": {}
+      },
+      "id": "60edc517-6cee-4608-8fc0-3e8a1cb65a7f",
+      "name": "Paginação HubSpot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -2800,
+        -16
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Visão financeira para CS — ERP Sankhya → HubSpot\nBloco 2. Template público inativo, sem credenciais. Configure somente em ambiente de teste.",
+        "height": 594,
+        "width": 2516,
+        "color": 4
+      },
+      "id": "2942ffe0-b111-4780-997b-87e98d9891e7",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3104,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Visão financeira para CS — ERP Sankhya → HubSpot\nBloco 3. Template público inativo, sem credenciais. Configure somente em ambiente de teste.",
+        "height": 534,
+        "width": 2516,
+        "color": 4
+      },
+      "id": "7ca01664-499f-4a02-95fb-04060d957bc6",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3104,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n    \"requestBody\": {\n        \"dataSet\": {\n            \"rootEntity\": \"ItemNota\",\n            \"includePresentationFields\": \"N\",\n            \"tryJoinedFields\":\"true\",\n            \"offsetPage\": \"0\",\n            \"criteria\": {\n                  \"expression\": {\n                      \"$\": \"this.NUNOTA IN ( {{\n(() => {\n  const e = $('Consultar títulos pagos').item.json.responseBody.entities.entity;\n  const list = Array.isArray(e) ? e : [e]; // garante que seja sempre array\n  return list.map(item => item.f6 ? item.f6[\"$\"] : '').filter(Boolean).join(\", \");\n})()\n}})\"\n                  }\n              },\n            \"entity\": [\n                {\n                    \"path\":\"\", \n                    \"fieldset\": {\n                        \"list\": \"CODPROD,VLRTOT\"\n                    }\n                },\n                { \n                    \"path\":\"Produto\", \n                    \"fieldset\": {\n                        \"list\":\" DESCRPROD\" \n                    }\n                }\n            ]\n        }\n    }\n}\n\n",
+        "options": {}
+      },
+      "id": "9a6fb1d6-2603-4a1e-8977-394d4c7fe42c",
+      "name": "Item e Produto1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2224,
+        432
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.sankhya.com.br/gateway/v1/mge/service.sbr?serviceName=CRUDServiceProvider.loadRecords&outputType=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Gera Key').item.json.bearerToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"serviceName\": \"CRUDServiceProvider.loadRecords\",\n    \"requestBody\": {\n        \"dataSet\": {\n            \"rootEntity\": \"ItemNota\",\n            \"includePresentationFields\": \"N\",\n            \"tryJoinedFields\":\"true\",\n            \"offsetPage\": \"0\",\n            \"criteria\": {\n                  \"expression\": {\n                      \"$\": \"this.NUNOTA IN ( {{\n(() => {\n  const e = $('Valores Pagos').item.json.responseBody.entities.entity;\n  const list = Array.isArray(e) ? e : [e]; // garante que seja sempre array\n  return list.map(item => item.f6 ? item.f6[\"$\"] : '').filter(Boolean).join(\", \");\n})()\n}} )\"\n                  }\n              },\n            \"entity\": [\n                {\n                    \"path\":\"\", \n                    \"fieldset\": {\n                        \"list\": \"CODPROD,VLRTOT\"\n                    }\n                },\n                { \n                    \"path\":\"Produto\", \n                    \"fieldset\": {\n                        \"list\":\" DESCRPROD\" \n                    }\n                }\n            ]\n        }\n    }\n}",
+        "options": {}
+      },
+      "id": "2ec8f0c2-14b1-457d-9b71-bbe4f7cd6a2e",
+      "name": "Item e Produto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1616,
+        -224
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        -48
+      ],
+      "id": "3020f7dd-f7a9-4a97-aefa-613f7ca26ea3",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2848,
+        448
+      ],
+      "id": "0c2828ce-47f0-493f-aa0e-15a22eef63bf",
+      "name": "No Operation, do nothing1"
+    }
+  ],
+  "connections": {
+    "Gera Key": {
+      "main": [
+        [
+          {
+            "node": "Datas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter Entities": {
+      "main": [
+        [
+          {
+            "node": "Pagamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar títulos pagos": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF6": {
+      "main": [
+        [
+          {
+            "node": "paginacao3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "paginacao3": {
+      "main": [
+        [
+          {
+            "node": "Paginação HubSpot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF7": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "prox_pag3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prox_pag3": {
+      "main": [
+        [
+          {
+            "node": "paginacao3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Gera Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Dados da Conta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Natureza1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados da Conta": {
+      "main": [
+        [
+          {
+            "node": "Consultar títulos pagos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Conta": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter Entities1": {
+      "main": [
+        [
+          {
+            "node": "PAGAMENTO ACUMULADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches1": {
+      "main": [
+        [
+          {
+            "node": "Dados da Conta1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF1": {
+      "main": [
+        [
+          {
+            "node": "Natureza",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split In Batches1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Conta1": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados da Conta1": {
+      "main": [
+        [
+          {
+            "node": "Valores Pagos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "all": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datas": {
+      "main": [
+        [
+          {
+            "node": "Consulta HubSpot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Conta1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Conta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PAGAMENTO ACUMULADO": {
+      "main": [
+        [
+          {
+            "node": "Cruzar Natureza com Pagamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valores Pagos": {
+      "main": [
+        [
+          {
+            "node": "IF1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Natureza": {
+      "main": [
+        [
+          {
+            "node": "Item e Produto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cruzar Natureza com Pagamento": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cruzar Natureza com Pagamento1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pagamento": {
+      "main": [
+        [
+          {
+            "node": "Cruzar Natureza com Pagamento1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Natureza1": {
+      "main": [
+        [
+          {
+            "node": "Item e Produto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta HubSpot": {
+      "main": [
+        [
+          {
+            "node": "IF6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paginação HubSpot": {
+      "main": [
+        [
+          {
+            "node": "IF7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item e Produto1": {
+      "main": [
+        [
+          {
+            "node": "Obter Entities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item e Produto": {
+      "main": [
+        [
+          {
+            "node": "Obter Entities1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
