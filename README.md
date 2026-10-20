@@ -33,7 +33,6 @@ O cron exportado é **00 01 * * *** — 01:00 no fuso da instância, que não es
 
 ![Sincronização financeira entre Sankhya e HubSpot](assets/screenshots/sincronizacao-financeira-sankhya-hubspot.png)
 
-Envie **sincronizacao-financeira-sankhya-hubspot.png** para **assets/screenshots/**. O README já está preparado.
 
 ## Explore
 
